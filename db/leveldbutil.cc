@@ -2,7 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
-#include <stdio.h>
+#include <cstdio>
+#include <include/leveldb/db.h>
 
 #include "leveldb/dumpfile.h"
 #include "leveldb/env.h"
@@ -35,13 +36,29 @@ bool HandleDumpCommand(Env* env, char** files, int num) {
   return ok;
 }
 
+bool HandleCompactCommand(Env* env, const std::string &dbname) {
+  leveldb::Status stat;
+  do {
+    leveldb::DB *db = nullptr;
+    stat = leveldb::DB::Open(leveldb::Options{}, dbname, &db);
+    if (!stat.ok()) break;
+    db->CompactRange(nullptr, nullptr);
+    delete db;
+  } while (false);
+  if (!stat.ok()) {
+      fprintf(stderr, "%s\n", stat.ToString().c_str());
+  }
+  return stat.ok();
+}
+
 }  // namespace
 }  // namespace leveldb
 
 static void Usage() {
   fprintf(stderr,
           "Usage: leveldbutil command...\n"
-          "   dump files...         -- dump contents of specified files\n");
+          "   dump files...         -- dump contents of specified files\n"
+          "   compact dbdirname     -- compact database in specified directory name\n");
 }
 
 int main(int argc, char** argv) {
@@ -54,6 +71,9 @@ int main(int argc, char** argv) {
     std::string command = argv[1];
     if (command == "dump") {
       ok = leveldb::HandleDumpCommand(env, argv + 2, argc - 2);
+    } else if (command == "compact" && argc == 3) {
+      const std::string dbname = argv[2];
+      ok = leveldb::HandleCompactCommand(env, dbname);
     } else {
       Usage();
       ok = false;
