@@ -5,6 +5,8 @@
 cmake_minimum_required(VERSION 3.9)
 project(leveldb VERSION 1.21.0 LANGUAGES C CXX)
 
+set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install)
+
 # This project can use C11, but will gracefully decay down to C89.
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED OFF)

@@ -40,7 +40,7 @@ bool HandleCompactCommand(Env* env, const char *dir) {
   Options opts;
   Status s = leveldb::DB::Open(opts, dir, &db);
     if (!s.ok()) {
-        fprintf(stderr, "Error opening db %s: %s\n", dir, s.ToString());
+        fprintf(stderr, "Error opening db %s: %s\n", dir, s.ToString().c_str());
         return false;
     }
     printf("Compacting...");
