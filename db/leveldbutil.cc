@@ -6,6 +6,7 @@
 #include "leveldb/dumpfile.h"
 #include "leveldb/env.h"
 #include "leveldb/status.h"
+#include "leveldb/db.h"
 
 namespace leveldb {
 namespace {
@@ -34,6 +35,22 @@ bool HandleDumpCommand(Env* env, char** files, int num) {
   return ok;
 }
 
+bool HandleCompactCommand(Env* env, const char *dir) {
+  DB *db;
+  Options opts;
+  Status s = leveldb::DB::Open(opts, dir, &db);
+    if (!s.ok()) {
+        fprintf(stderr, "Error opening db %s: %s\n", dir, s.ToString());
+        return false;
+    }
+    printf("Compacting...");
+    fflush(stdout);
+    db->CompactRange(nullptr, nullptr);
+    printf("Done\n");
+    delete db;
+    return true;
+}
+
 }  // namespace
 }  // namespace leveldb
 
@@ -42,6 +59,7 @@ static void Usage() {
       stderr,
       "Usage: leveldbutil command...\n"
       "   dump files...         -- dump contents of specified files\n"
+      "   compact dir           -- compact LevelDB in dir\n"
       );
 }
 
@@ -55,6 +73,8 @@ int main(int argc, char** argv) {
     std::string command = argv[1];
     if (command == "dump") {
       ok = leveldb::HandleDumpCommand(env, argv+2, argc-2);
+    } else if (command == "compact") {
+      ok = leveldb::HandleCompactCommand(env, argv[2]);
     } else {
       Usage();
       ok = false;
